@@ -17,6 +17,8 @@ function Player:init(startPosition)
     self.position = startPosition
     self.velocity = vector2D.new(0, 0)
     self.direction = 1 -- 1 is right, -1 is left
+    self.fuel = 100
+    self.isJumping = false
 
     self.width = self.image.width
     self.height = self.image.height
@@ -63,22 +65,32 @@ function Player:left()
 end
 
 function Player:jump()
-	-- little boost if player is currently on the ground
-	if self:isOnGround() then
-	    self.velocity:addVector(vector2D.new(0, -0.8))
-	end
+    if 
+        (self.isJumping and self.fuel > 0) or
+        ((not self.isJumping) and self.fuel > 10)
+    then
+        self.isJumping = true
+    	-- little boost if player is currently on the ground
+    	if self:isOnGround() then
+    	    self.velocity:addVector(vector2D.new(0, -0.8))
+    	end
 
-	-- only make player move faster up to a limit.
-	-- Limit this way rather than overall velocity to allow high velocity bounces
-	if self.velocity.dy >= -3 then
-	    self.velocity:addVector(vector2D.new(0, -0.4))
-	end
+    	-- only make player move faster up to a limit.
+    	-- Limit this way rather than overall velocity to allow high velocity bounces
+    	if self.velocity.dy >= -3 then
+    	    self.velocity:addVector(vector2D.new(0, -0.4))
+    	end
 
-    self.thrustSprite:setVisible(true)
+        self.fuel = self.fuel - cons.playerFuelConsumeRate
+        self.thrustSprite:setVisible(true)
+    else
+        self:endJump()
+    end
 end
 
 function Player:endJump()
     self.thrustSprite:setVisible(false)
+    self.isJumping = false
 end
 
 function Player:obstacleCollision(obstacleSprite)

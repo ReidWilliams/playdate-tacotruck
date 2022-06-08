@@ -9,6 +9,7 @@ function getConstants()
 	c.playerGroundDelta = 10 -- how far below top of ground to render player
 	c.gravity = vector2D.new(0, 0.25)
 	c.playerStartPosition = vector2D.new(50, c.groundY + c.playerGroundDelta)
+	c.playerFuelConsumeRate = 0.9
 
 	c.cactusFrequency = 0.1
 

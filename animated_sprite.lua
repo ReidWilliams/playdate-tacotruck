@@ -16,9 +16,5 @@ function AnimatedSprite:init(animation)
 end
 
 function AnimatedSprite:update()
-    -- print("animation sprite updated")
-
-    -- AnimatedSprite.super:getImage()
-    -- self:getImage(self.animation:image())
     self:setImage(self.animation:image())
 end

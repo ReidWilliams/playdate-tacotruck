@@ -13,6 +13,7 @@ import "constants"
 import "utils"
 import "scene"
 import "player"
+import "fuel_UI"
 
 local gfx <const> = playdate.graphics
 local vector2D <const> = playdate.geometry.vector2D
@@ -40,6 +41,9 @@ function myGameSetUp()
 
     leftBoundarySprite = gfx.sprite.addEmptyCollisionSprite(0, -1000, cons.leftBoundary, 1240)
     leftBoundarySprite:add()
+
+    fuelUI = FuelUI()
+    fuelUI:moveTo(8, 8)
 
     -- local crashSound = playdate.sound.synth.new(playdate.sound.kWaveNoise)
     crashSound = playdate.sound.sampleplayer.new( "sounds/ow.wav" )
@@ -112,10 +116,9 @@ function playdate.update()
     getPlayerInput()
 
     player:update()
-   
-    -- Call the functions below in playdate.update() to draw sprites and keep
-    -- timers updated. (We aren't using timers in this example, but in most
-    -- average-complexity games, you will.)
+    player.fuel = math.min(player.fuel + 0.2, 100)
+
+    fuelUI:update(player.fuel)
 
     gfx.sprite.update()
     playdate.timer.updateTimers()
