@@ -26,13 +26,11 @@ function Player:init(startPosition)
     -- collide rect is a few pixels shorter than image so sprite appears to sit
     -- slightly below the top of the scene ground sprite
     self.sprite:setCollideRect( 0, 0, self.width, self.height ) 
-    self.sprite:moveTo( self.position.dx, self.position.dy )
 
     -- Set up thrust animation and sprite at bottom of truck
     self.thrustImages = gfx.imagetable.new('images/thrust')
     self.thrustAnimation = gfx.animation.loop.new(100, self.thrustImages, true)
     self.thrustSprite = AnimatedSprite(self.thrustAnimation)
-    self.thrustSprite:moveTo(self.position.dx + 30, self.position.dy + 8)
     self.thrustSprite:add() 
 
     self.showThrust = true
@@ -129,5 +127,5 @@ function Player:update()
     if self.velocity.dy < -6 then self.velocity.dy = -6 end 
 
     self.sprite:moveTo(self.position.dx, self.position.dy)
-    self.thrustSprite:moveTo(self.position.dx + 30, self.position.dy + 35)
+    self.thrustSprite:moveTo(self.position.dx + 30, self.position.dy + 40)
 end
