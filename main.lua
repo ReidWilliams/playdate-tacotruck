@@ -118,9 +118,9 @@ function playdate.update()
     player:update()
     player.fuel = math.min(player.fuel + 0.2, 100)
 
-    fuelUI:update(player.fuel)
-
     gfx.sprite.update()
     playdate.timer.updateTimers()
+
+    fuelUI:update(player.fuel)
 end
 

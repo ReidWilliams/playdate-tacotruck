@@ -53,7 +53,11 @@ function Scene:generateCacti(left, right)
     local x = left
 
     while x < right - step do
-        if ( math.random() < cons.cactusFrequency ) then
+        -- local p = 0.5 * gfx.perlin(20 * (self.viewportX + x), 0, 0, 0, 10, 1.0) 
+        local p = gfx.perlin(.0001 * (self.viewportX + x), 0, 0, 0, 10, 1.0) 
+        print(p)
+        -- if (r < cons.cactusFrequency ) then
+        if ( math.random() < p ) then
             self:newCactusAt(x)
         end
         x += step
