@@ -51,13 +51,21 @@ function Scene:generateCacti(left, right)
     -- Sweep left to right, randomly deciding if a cactus should spawn
     local step = self.cactusImage.width
     local x = left
-
+    local thresh, delta
+    
     while x < right - step do
-        -- local p = 0.5 * gfx.perlin(20 * (self.viewportX + x), 0, 0, 0, 10, 1.0) 
-        local p = gfx.perlin(.0001 * (self.viewportX + x), 0, 0, 0, 10, 1.0) 
-        print(p)
-        -- if (r < cons.cactusFrequency ) then
-        if ( math.random() < p ) then
+        delta = cons.cactusFrequencyPerlinAmplitudeScale * 
+            (gfx.perlin(
+                cons.cactusFrequencyPerlinXScale*(self.viewportX + x), 
+                0, -- y
+                0, -- z
+                0, -- repeat
+                cons.cactusFrequencyPerlinOctaves, 
+                cons.cactusFrequencyPerlinPersitence
+            ) - 0.5)
+            
+        thresh = cons.catusFrequencyBase + delta
+        if ( math.random() < thresh ) then
             self:newCactusAt(x)
         end
         x += step
