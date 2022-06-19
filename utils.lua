@@ -1,4 +1,5 @@
 local gfx <const> = playdate.graphics
+local vector2D <const> = playdate.geometry.vector2D
 
 -- All utils as pure functions with no state
 

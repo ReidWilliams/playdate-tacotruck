@@ -2,6 +2,7 @@ import "utils"
 import "constants"
 
 local gfx <const> = playdate.graphics
+local vector2D <const> = playdate.geometry.vector2D
 
 local cons = getConstants()
 local objectStep = 25 -- width of cactus, taco sprites. Divide x coord into lattice this wide
@@ -11,18 +12,17 @@ class('Scene').extends()
 -- FIXME use object pattern from Asteroid game
 
 -- Scene initializes with 3 ground sprites, each 400 pixels wide to cover one
--- viewport offscreen to the left, one onscreen viewport, and one offscreen
+-- viewport width offscreen to the left, one inside viewport, and one offscreen
 -- viewport to the right. As player scrolls beyond this, ground and obstacle
 -- sprites are dynamically generated.
 
 function Scene:init()
     Scene.super.init(self)
+    
+    -- viewport origin in global scene coordinates
+    self.viewport = vector2D.new(0, 0)
 
-    -- game will render (x, x + 400) on screen. Changing x will scroll the scene
-    self.viewportX = 0
-    self.viewportY = 0
-
-    -- left and rightmost pixels that have been generated, relative to viewPortX
+    -- left and rightmost pixels that have been generated in scene coordinates
     self.rightGeneratedBoundary = 800 
     self.leftGeneratedBoundary = -400
     
@@ -74,7 +74,7 @@ function Scene:generateCacti(left, right)
     while x < right - objectStep do
         delta = cons.cactusFrequencyPerlinAmplitudeScale * 
             (gfx.perlin(
-                cons.cactusFrequencyPerlinXScale*(self.viewportX + x), 
+                cons.cactusFrequencyPerlinXScale*(  x), 
                 0, -- y
                 0, -- z
                 0, -- repeat
@@ -95,9 +95,9 @@ function Scene:newTacoAt(x)
         return
     end
         
-    local tacoSprite = createSpriteWithCollision( self.tacoImage )
+    local tacoSprite = createSpriteWithCollision(self.tacoImage)
     tacoSprite:setZIndex( -99 )
-    tacoSprite:moveTo( x, self.viewportY + cons.groundY - self.tacoImage.height + - 3) 
+    tacoSprite.worldPosition = vector2D.new(x, cons.groundY - self.tacoImage.height + - 3)
     self.tacoSprites[ #self.tacoSprites + 1 ] = tacoSprite 
     tacoSprite:add()
 end
@@ -105,51 +105,25 @@ end
 function Scene:newCactusAt(x)
     local cactusSprite = createSpriteWithCollision( self.cactusImage )
     cactusSprite:setZIndex( -99 )
-    cactusSprite:moveTo( x, self.viewportY + cons.groundY - self.cactusImage.height + 4 ) 
+    cactusSprite.worldPosition = vector2D.new(x, cons.groundY - self.cactusImage.height + 4) 
     self.cactusSprites[ #self.cactusSprites + 1 ] = cactusSprite 
     cactusSprite:add()
 end
 
 -- Generates new ground 400 pixels wide, from x to x + 400
 function Scene:newGroundAt(x)
-    local groundSprite = createSpriteWithCollision( self.groundImage )
+    local groundSprite = createSpriteWithCollision(self.groundImage)
     groundSprite:setZIndex(-100)
     groundSprite:setCollideRect( 0, cons.playerGroundDelta, self.groundImage.width, self.groundImage.height )
-    groundSprite:moveTo( x, self.viewportY + cons.groundY ) 
+    groundSprite.worldPosition = vector2D.new(x, cons.groundY) 
     self.groundSprites[ #self.groundSprites + 1 ] = groundSprite
     groundSprite:add()
 end
 
-function Scene:moveSpritesBy(spriteList, dx, dy)
+function Scene:updateSprites(spriteList)
     for _, sprite in ipairs(spriteList) do
-        sprite:moveBy(dx, dy)
-    end
-end
-
-function Scene:moveBy(dx, dy)
-    self.viewportX -= dx
-    self.viewportY -= dy
-    self.leftGeneratedBoundary -= dx
-    self.rightGeneratedBoundary -= dx
-
-    -- Move existing sprites
-    self:moveSpritesBy(self.groundSprites, -dx, -dy)
-    self:moveSpritesBy(self.tacoSprites, -dx, -dy)
-    self:moveSpritesBy(self.cactusSprites, -dx, -dy)
-   
-    -- Generate new sprites as player gets close to boundaries
-    -- No cacti or tacos left of player start
-    if ( self.leftGeneratedBoundary > -400) then
-        self:newGroundAt( self.leftGeneratedBoundary - 400 )        
-        self.leftGeneratedBoundary -= 400
-    end
-
-    -- Cacti and tacos right of player start
-    if ( self.rightGeneratedBoundary < 800) then
-        self:newGroundAt( self.rightGeneratedBoundary )
-        self:generateCacti( self.rightGeneratedBoundary, self.rightGeneratedBoundary + 400 )
-        self:generateTacos( self.rightGeneratedBoundary, self.rightGeneratedBoundary + 400 )
-        self.rightGeneratedBoundary += 400
+        pos = sprite.worldPosition - self.viewport
+        sprite:moveTo(pos.dx, pos.dy)
     end
 end
 
@@ -180,5 +154,29 @@ function Scene:tacoConsumed(tacoSprite)
     removeItem(self.tacoSprites, tacoSprite)
     tacoSprite:remove()
 end
+
+function Scene:update()
+    -- Generate new ground as viewport gets close to boundaries
+    if (self.viewport.dx - self.leftGeneratedBoundary < 400) then
+        self:newGroundAt(self.leftGeneratedBoundary - 400)        
+        self.leftGeneratedBoundary -= 400
+    end
+    
+    -- Cacti and tacos right of player start
+    if (self.rightGeneratedBoundary - self.viewport.dx < 800) then
+        self:newGroundAt( self.rightGeneratedBoundary )
+        self:generateCacti( self.rightGeneratedBoundary, self.rightGeneratedBoundary + 400 )
+        self:generateTacos( self.rightGeneratedBoundary, self.rightGeneratedBoundary + 400 )
+        self.rightGeneratedBoundary += 400
+    end
+     
+    -- Move existing sprites based on viewport
+    self:updateSprites(self.groundSprites)
+    self:updateSprites(self.tacoSprites)
+    self:updateSprites(self.cactusSprites)
+end
+       
+      
+
     
     

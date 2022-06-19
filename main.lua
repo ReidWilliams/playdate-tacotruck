@@ -44,33 +44,36 @@ function myGameSetUp()
     assert( crashSound )
 end
 
+function moveViewportOriginBy(delta)
+    print ("moving viewport origin")
+    local origin = scene.viewport
+    local new = origin + delta
+    scene.viewport = new
+    player.viewport = new
+end
+
 function scrollUpdate()
-    print("viewport y is " .. scene.viewportY)
-    local dx = 0
-    local dy = 0
+    local pos = player:getViewportCoordsPosition()
+    local delta = vector2D.new(0, 0)
     
-    if (player.position.dx < cons.leftBoundary) then
-        dx = player.position.dx - cons.leftBoundary
-        scene:moveBy(dx, 0)
-        player.position.dx = cons.leftBoundary
+    if (pos.dx < cons.leftBoundary) then
+        delta.dx = pos.dx - cons.leftBoundary
+        moveViewportOriginBy(delta)
     end
     
-    if (player.position.dx + player.width > cons.rightBoundary) then
-        dx = player.position.dx + player.width - cons.rightBoundary
-        scene:moveBy(dx, 0)
-        player.position.dx = cons.rightBoundary - player.width
+    if (pos.dx + player.width > cons.rightBoundary) then
+        delta.dx = pos.dx + player.width - cons.rightBoundary
+        moveViewportOriginBy(delta)
     end
     
-    if (player.position.dy < cons.topBoundary) then
-        local dy = player.position.dy - cons.topBoundary
-        scene:moveBy(0, dy)
-        player.position.dy = cons.topBoundary
+    if (pos.dy < cons.topBoundary) then
+        delta.dy = pos.dy - cons.topBoundary
+        moveViewportOriginBy(delta)
     end
         
-    if (scene.viewportY > 0 and player.position.dy + player.height > cons.bottomBoundary) then
-        dy = player.position.dy + player.height - cons.bottomBoundary
-        scene:moveBy(0, dy)
-        player.position.dy = cons.bottomBoundary - player.height
+    if (scene.viewport.dy < 0 and pos.dy + player.height > cons.bottomBoundary) then
+        delta.dy = pos.dy + player.height - cons.bottomBoundary
+        moveViewportOriginBy(delta)
     end
 end
     
@@ -80,7 +83,6 @@ function collisionUpdate()
     for _, sprite in ipairs(colls) do
         if scene:isGround(sprite) then 
             player:groundCollision(sprite)
-            -- scene:moveBy(0, 0 - scene.viewportY)-- hack because I'm see this incorrectly be -10
         end
         if scene:isObstacle(sprite) then player:obstacleCollision(sprite) end
         -- play sound here
@@ -134,12 +136,12 @@ myGameSetUp()
 
 function playdate.update()
 
-    collisionUpdate()
-    scrollUpdate()
+    -- order here matters I think
     getPlayerInput()
-
     player:update()
-    -- player.fuel = math.min(player.fuel + 0.2, 100)
+    scrollUpdate()
+    scene:update()
+    collisionUpdate()
 
     gfx.sprite.update()
     playdate.timer.updateTimers()
