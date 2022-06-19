@@ -20,6 +20,7 @@ function Scene:init()
 
     -- game will render (x, x + 400) on screen. Changing x will scroll the scene
     self.viewportX = 0
+    self.viewportY = 0
 
     -- left and rightmost pixels that have been generated, relative to viewPortX
     self.rightGeneratedBoundary = 800 
@@ -96,7 +97,7 @@ function Scene:newTacoAt(x)
         
     local tacoSprite = createSpriteWithCollision( self.tacoImage )
     tacoSprite:setZIndex( -99 )
-    tacoSprite:moveTo( x, cons.groundY - self.tacoImage.height + - 3) 
+    tacoSprite:moveTo( x, self.viewportY + cons.groundY - self.tacoImage.height + - 3) 
     self.tacoSprites[ #self.tacoSprites + 1 ] = tacoSprite 
     tacoSprite:add()
 end
@@ -104,7 +105,7 @@ end
 function Scene:newCactusAt(x)
     local cactusSprite = createSpriteWithCollision( self.cactusImage )
     cactusSprite:setZIndex( -99 )
-    cactusSprite:moveTo( x, cons.groundY - self.cactusImage.height + 4 ) 
+    cactusSprite:moveTo( x, self.viewportY + cons.groundY - self.cactusImage.height + 4 ) 
     self.cactusSprites[ #self.cactusSprites + 1 ] = cactusSprite 
     cactusSprite:add()
 end
@@ -114,26 +115,27 @@ function Scene:newGroundAt(x)
     local groundSprite = createSpriteWithCollision( self.groundImage )
     groundSprite:setZIndex(-100)
     groundSprite:setCollideRect( 0, cons.playerGroundDelta, self.groundImage.width, self.groundImage.height )
-    groundSprite:moveTo( x, cons.groundY ) 
+    groundSprite:moveTo( x, self.viewportY + cons.groundY ) 
     self.groundSprites[ #self.groundSprites + 1 ] = groundSprite
     groundSprite:add()
 end
 
-function Scene:moveSpritesBy(spriteList, delta)
+function Scene:moveSpritesBy(spriteList, dx, dy)
     for _, sprite in ipairs(spriteList) do
-        sprite:moveBy(delta, 0)
+        sprite:moveBy(dx, dy)
     end
 end
 
-function Scene:moveBy(delta)
-    self.viewportX += delta
-    self.leftGeneratedBoundary += delta
-    self.rightGeneratedBoundary += delta
+function Scene:moveBy(dx, dy)
+    self.viewportX -= dx
+    self.viewportY -= dy
+    self.leftGeneratedBoundary -= dx
+    self.rightGeneratedBoundary -= dx
 
     -- Move existing sprites
-    self:moveSpritesBy(self.groundSprites, delta)
-    self:moveSpritesBy(self.tacoSprites, delta)
-    self:moveSpritesBy(self.cactusSprites, delta)
+    self:moveSpritesBy(self.groundSprites, -dx, -dy)
+    self:moveSpritesBy(self.tacoSprites, -dx, -dy)
+    self:moveSpritesBy(self.cactusSprites, -dx, -dy)
    
     -- Generate new sprites as player gets close to boundaries
     -- No cacti or tacos left of player start
@@ -149,18 +151,6 @@ function Scene:moveBy(delta)
         self:generateTacos( self.rightGeneratedBoundary, self.rightGeneratedBoundary + 400 )
         self.rightGeneratedBoundary += 400
     end
-end
-
-function Scene:moveLeft(delta)
-    self:moveBy(-delta)
-end
-
-function Scene:moveRight(delta)
-    self:moveBy(delta, 0)
-end
-
-function Scene:moveUp(delta)
-    self:moveBy(0, -delta)
 end
 
 function Scene:isTaco(sprite)

@@ -17,7 +17,7 @@ function Player:init(startPosition)
     self.position = startPosition
     self.velocity = vector2D.new(0, 0)
     self.direction = 1 -- 1 is right, -1 is left
-    self.fuel = 100
+    self.fuel = cons.playerStartFuel
     self.isJumping = false
 
     self.width = self.image.width
@@ -43,6 +43,8 @@ function Player:init(startPosition)
     self.thrustSprite:add() 
 
     self.showThrust = true
+    
+    self:update()
 
     return self
 end

@@ -36,19 +36,6 @@ function myGameSetUp()
     player = Player(cons.playerStartPosition)
     scene = Scene()
 
-    -- refactor these out
-    rightBoundarySprite = gfx.sprite.addEmptyCollisionSprite(cons.rightBoundary, -1000, 400 - cons.rightBoundary, 1240)
-    rightBoundarySprite:add()
-
-    leftBoundarySprite = gfx.sprite.addEmptyCollisionSprite(0, -1000, cons.leftBoundary, 1240)
-    leftBoundarySprite:add()
-    
-    topBoundarySprite = gfx.sprite.addEmptyCollisionSprite(0, 0, 400, cons.topBoundary)
-    topBoundarySprite:add()
-    
-    bottomBoundarySprite = gfx.sprite.addEmptyCollisionSprite(0, cons.bottomBoundary, 400, 240 - cons.bottomBoundary)
-    bottomBoundarySprite:add()
-
     fuelUI = FuelUI()
     fuelUI:moveTo(8, 8)
 
@@ -57,34 +44,46 @@ function myGameSetUp()
     assert( crashSound )
 end
 
-function leftCollisionUpdate()
-    local delta = cons.leftBoundary - player.position.dx
-    scene:moveRight(delta)
-    player.position.dx = cons.leftBoundary
+function scrollUpdate()
+    print("viewport y is " .. scene.viewportY)
+    local dx = 0
+    local dy = 0
+    
+    if (player.position.dx < cons.leftBoundary) then
+        dx = player.position.dx - cons.leftBoundary
+        scene:moveBy(dx, 0)
+        player.position.dx = cons.leftBoundary
+    end
+    
+    if (player.position.dx + player.width > cons.rightBoundary) then
+        dx = player.position.dx + player.width - cons.rightBoundary
+        scene:moveBy(dx, 0)
+        player.position.dx = cons.rightBoundary - player.width
+    end
+    
+    if (player.position.dy < cons.topBoundary) then
+        local dy = player.position.dy - cons.topBoundary
+        scene:moveBy(0, dy)
+        player.position.dy = cons.topBoundary
+    end
+        
+    if (scene.viewportY > 0 and player.position.dy + player.height > cons.bottomBoundary) then
+        dy = player.position.dy + player.height - cons.bottomBoundary
+        scene:moveBy(0, dy)
+        player.position.dy = cons.bottomBoundary - player.height
+    end
 end
-
-function rightCollisionUpdate() 
-local delta = player.position.dx + player.width - cons.rightBoundary
-    scene:moveLeft(delta)
-    player.position.dx = cons.rightBoundary - player.width
-end
-
-function topCollisionUpdate() 
-local delta = player.position.dy + player.height - cons.topBoundary
-    scene:moveUp(delta)
-    player.position.dy = cons.topBoundary - player.height
-end
-
+    
 function collisionUpdate()
     -- test for collision
     local colls = player.sprite:overlappingSprites()
     for _, sprite in ipairs(colls) do
-        if scene:isGround(sprite) then player:groundCollision(sprite) end
+        if scene:isGround(sprite) then 
+            player:groundCollision(sprite)
+            -- scene:moveBy(0, 0 - scene.viewportY)-- hack because I'm see this incorrectly be -10
+        end
         if scene:isObstacle(sprite) then player:obstacleCollision(sprite) end
         -- play sound here
-        if sprite == rightBoundarySprite then rightCollisionUpdate() end
-        if sprite == leftBoundarySprite then leftCollisionUpdate() end
-        if sprite == topBoundarySprite then topCollisionUpdate() end
     end
     
     colls = player.eatingSprite:overlappingSprites()
@@ -136,6 +135,7 @@ myGameSetUp()
 function playdate.update()
 
     collisionUpdate()
+    scrollUpdate()
     getPlayerInput()
 
     player:update()
