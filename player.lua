@@ -19,8 +19,6 @@ function Player:init(startPosition)
     self.direction = 1 -- 1 is right, -1 is left
     self.fuel = cons.playerStartFuel
     self.isJumping = false
-    
-    self.viewport = vector2D.new(0, 0)
 
     self.width = self.image.width
     self.height = self.image.height
@@ -46,8 +44,6 @@ function Player:init(startPosition)
 
     self.showThrust = true
     
-    self:update()
-
     return self
 end
 
@@ -135,12 +131,8 @@ end
 function Player:sideCollision() 
 	self.velocity.dx = self.velocity.dx * -0.9
 end
-
-function Player:getViewportCoordsPosition()
-    return self.position - self.viewport
-end
     
-function Player:update()
+function Player:update(viewport)
     self.position:addVector(self.velocity)
     self.velocity:addVector(cons.gravity)
     -- 0.95 is reasonable
@@ -155,7 +147,7 @@ function Player:update()
     if self.velocity.dy < -6 then self.velocity.dy = -6 end 
     
     -- update sprites based on position and viewport
-    local spritePosition = self:getViewportCoordsPosition()
+    local spritePosition = self.position - viewport
     self.sprite:moveTo(spritePosition.dx, spritePosition.dy)
     self.eatingSprite:moveTo(spritePosition.dx, spritePosition.dy)
     self.thrustSprite:moveTo(spritePosition.dx + 30, spritePosition.dy + 40)

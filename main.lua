@@ -22,9 +22,8 @@ local cons = getConstants()
 
 local player = nil
 local scene = nil
-local rightBoundarySprite = nil
-local leftBoundarySprite = nil
-local topBoundarySprite = nil
+-- vector representing viewport origin in world coordinates
+local viewport = vector2D.new(0, 0) 
 
 local crashSound = nil
 
@@ -44,17 +43,12 @@ function myGameSetUp()
     assert( crashSound )
 end
 
-function moveViewportOriginBy(delta)
-    local origin = scene.viewport
-    local new = origin + delta
-    scene.viewport = new
-    player.viewport = new
-end
-
+-- Move viewport if player is getting too close to edge of screen
 function scrollUpdate()
-    local pos = player:getViewportCoordsPosition()
+    local pos = player.position - viewport -- player pos in viewport coords
     local delta = vector2D.new(0, 0)
     
+    -- is player position in vp coords too close to edge of screen?
     if (pos.dx < cons.leftBoundary) then
         delta.dx = pos.dx - cons.leftBoundary
     end
@@ -67,11 +61,13 @@ function scrollUpdate()
         delta.dy = pos.dy - cons.topBoundary
     end
         
-    if (scene.viewport.dy < 0 and pos.dy + player.height > cons.bottomBoundary) then
+    -- scrolling when player hits lower portion of screen should only happen when
+    -- viewport has already moved up from its starting position of (0, 0)    
+    if (viewport.dy < 0 and pos.dy + player.height > cons.bottomBoundary) then
         delta.dy = pos.dy + player.height - cons.bottomBoundary
     end
     
-    moveViewportOriginBy(delta)
+   viewport = viewport + delta
 end
     
 function collisionUpdate()
@@ -132,12 +128,10 @@ myGameSetUp()
 -- Use this function to poll input, run game logic, and move sprites.
 
 function playdate.update()
-
-    -- order here matters I think
     getPlayerInput()
     scrollUpdate()
-    player:update()
-    scene:update()
+    player:update(viewport)
+    scene:update(viewport)
     collisionUpdate()
 
     gfx.sprite.update()

@@ -18,9 +18,6 @@ class('Scene').extends()
 
 function Scene:init()
     Scene.super.init(self)
-    
-    -- viewport origin in global scene coordinates
-    self.viewport = vector2D.new(0, 0)
 
     -- left and rightmost pixels that have been generated in scene coordinates
     self.rightGeneratedBoundary = 800 
@@ -120,9 +117,9 @@ function Scene:newGroundAt(x)
     groundSprite:add()
 end
 
-function Scene:updateSprites(spriteList)
+function Scene:updateSprites(spriteList, viewport)
     for _, sprite in ipairs(spriteList) do
-        pos = sprite.worldPosition - self.viewport
+        pos = sprite.worldPosition - viewport
         sprite:moveTo(pos.dx, pos.dy)
     end
 end
@@ -155,15 +152,15 @@ function Scene:tacoConsumed(tacoSprite)
     tacoSprite:remove()
 end
 
-function Scene:update()
+function Scene:update(viewport)
     -- Generate new ground as viewport gets close to boundaries
-    if (self.viewport.dx - self.leftGeneratedBoundary < 400) then
+    if (viewport.dx - self.leftGeneratedBoundary < 400) then
         self:newGroundAt(self.leftGeneratedBoundary - 400)        
         self.leftGeneratedBoundary -= 400
     end
     
     -- Cacti and tacos right of player start
-    if (self.rightGeneratedBoundary - self.viewport.dx < 800) then
+    if (self.rightGeneratedBoundary - viewport.dx < 800) then
         self:newGroundAt( self.rightGeneratedBoundary )
         self:generateCacti( self.rightGeneratedBoundary, self.rightGeneratedBoundary + 400 )
         self:generateTacos( self.rightGeneratedBoundary, self.rightGeneratedBoundary + 400 )
@@ -171,9 +168,9 @@ function Scene:update()
     end
      
     -- Move existing sprites based on viewport
-    self:updateSprites(self.groundSprites)
-    self:updateSprites(self.tacoSprites)
-    self:updateSprites(self.cactusSprites)
+    self:updateSprites(self.groundSprites, viewport)
+    self:updateSprites(self.tacoSprites, viewport)
+    self:updateSprites(self.cactusSprites, viewport)
 end
        
       
