@@ -72,6 +72,15 @@ function collisionUpdate()
         if sprite == rightBoundarySprite then rightCollisionUpdate() end
         if sprite == leftBoundarySprite then leftCollisionUpdate() end
     end
+    
+    colls = player.eatingSprite:overlappingSprites()
+    for _, sprite in ipairs(colls) do
+        if scene:isTaco(sprite) then 
+            -- event based pattern would be nice here
+            player:tacoCollision(sprite)
+            scene:tacoConsumed(sprite)
+        end
+    end
 end
 
 function getPlayerInput ()
@@ -116,7 +125,7 @@ function playdate.update()
     getPlayerInput()
 
     player:update()
-    player.fuel = math.min(player.fuel + 0.2, 100)
+    -- player.fuel = math.min(player.fuel + 0.2, 100)
 
     gfx.sprite.update()
     playdate.timer.updateTimers()

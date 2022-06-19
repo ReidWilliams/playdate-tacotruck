@@ -4,6 +4,7 @@ import "constants"
 local gfx <const> = playdate.graphics
 
 local cons = getConstants()
+local objectStep = 25 -- width of cactus, taco sprites. Divide x coord into lattice this wide
 
 class('Scene').extends()
 
@@ -23,12 +24,16 @@ function Scene:init()
     -- left and rightmost pixels that have been generated, relative to viewPortX
     self.rightGeneratedBoundary = 800 
     self.leftGeneratedBoundary = -400
-
+    
     self.groundSprites = {}
+    self.tacoSprites = {}
     self.cactusSprites = {}
 
     self.groundImage = gfx.image.new( "images/ground.png" )
     assert( self.groundImage )
+    
+    self.tacoImage = gfx.image.new( "images/taco.png" )
+    assert( self.tacoImage )
 
     self.cactusImage = gfx.image.new( "images/cactus.png" )
     assert( self.cactusImage )
@@ -45,15 +50,27 @@ function Scene:init()
     return self
 end
 
+-- Create taco sprites for given x range. 
+function Scene:generateTacos(left, right)
+    -- Sweep left to right, randomly deciding if a cactus should spawn
+    local x = left
+    
+    while x < right - objectStep do
+        if ( math.random() < cons.tacoFrequency ) then
+            self:newTacoAt(x)
+        end
+        x += objectStep
+    end
+end
+
 -- Create cacti sprites for given x range. 
 -- Sprites are never destroyed
 function Scene:generateCacti(left, right)
     -- Sweep left to right, randomly deciding if a cactus should spawn
-    local step = self.cactusImage.width
     local x = left
     local thresh, delta
     
-    while x < right - step do
+    while x < right - objectStep do
         delta = cons.cactusFrequencyPerlinAmplitudeScale * 
             (gfx.perlin(
                 cons.cactusFrequencyPerlinXScale*(self.viewportX + x), 
@@ -68,8 +85,20 @@ function Scene:generateCacti(left, right)
         if ( math.random() < thresh ) then
             self:newCactusAt(x)
         end
-        x += step
+        x += objectStep
     end
+end
+
+function Scene:newTacoAt(x)
+    if self:isCactusNearby(x) then 
+        return
+    end
+        
+    local tacoSprite = createSpriteWithCollision( self.tacoImage )
+    tacoSprite:setZIndex( -99 )
+    tacoSprite:moveTo( x, cons.groundY - self.tacoImage.height + - 3) 
+    self.tacoSprites[ #self.tacoSprites + 1 ] = tacoSprite 
+    tacoSprite:add()
 end
 
 function Scene:newCactusAt(x)
@@ -90,29 +119,34 @@ function Scene:newGroundAt(x)
     groundSprite:add()
 end
 
+function Scene:moveSpritesBy(spriteList, delta)
+    for _, sprite in ipairs(spriteList) do
+        sprite:moveBy(delta, 0)
+    end
+end
+
 function Scene:moveBy(delta)
     self.viewportX += delta
     self.leftGeneratedBoundary += delta
     self.rightGeneratedBoundary += delta
 
     -- Move existing sprites
-    for _, sprite in ipairs(self.groundSprites) do
-        sprite:moveBy(delta, 0)
-    end
-
-    for _, sprite in ipairs(self.cactusSprites) do
-        sprite:moveBy(delta, 0)
-    end
-
+    self:moveSpritesBy(self.groundSprites, delta)
+    self:moveSpritesBy(self.tacoSprites, delta)
+    self:moveSpritesBy(self.cactusSprites, delta)
+   
     -- Generate new sprites as player gets close to boundaries
+    -- No cacti or tacos left of player start
     if ( self.leftGeneratedBoundary > -400) then
-        self:newGroundAt( self.leftGeneratedBoundary - 400 )
+        self:newGroundAt( self.leftGeneratedBoundary - 400 )        
         self.leftGeneratedBoundary -= 400
     end
 
+    -- Cacti and tacos right of player start
     if ( self.rightGeneratedBoundary < 800) then
         self:newGroundAt( self.rightGeneratedBoundary )
         self:generateCacti( self.rightGeneratedBoundary, self.rightGeneratedBoundary + 400 )
+        self:generateTacos( self.rightGeneratedBoundary, self.rightGeneratedBoundary + 400 )
         self.rightGeneratedBoundary += 400
     end
 end
@@ -125,6 +159,10 @@ function Scene:moveRight(delta)
     self:moveBy(delta, 0)
 end
 
+function Scene:isTaco(sprite)
+    return contains(self.tacoSprites, sprite)
+end
+
 function Scene:isObstacle(sprite)
 	return contains(self.cactusSprites, sprite)
 end
@@ -133,4 +171,20 @@ function Scene:isGround(sprite)
     return contains(self.groundSprites, sprite)
 end
 
+function Scene:isCactusNearby(x)
+    local cactus = firstWhere(
+        self.cactusSprites, 
+        function(cactusSprite)
+            return math.abs(cactusSprite.x - x) < cons.minDistanceTacoFromCactus
+        end
+    )
+    
+    return cactus ~= nil
+end
 
+function Scene:tacoConsumed(tacoSprite)
+    removeItem(self.tacoSprites, tacoSprite)
+    tacoSprite:remove()
+end
+    
+    

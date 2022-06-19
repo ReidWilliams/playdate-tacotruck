@@ -28,6 +28,13 @@ function Player:init(startPosition)
     -- collide rect is a few pixels shorter than image so sprite appears to sit
     -- slightly below the top of the scene ground sprite
     self.sprite:setCollideRect( 0, 0, self.width, self.height ) 
+    
+    -- smaller sprite with no image centered inside player sprite
+    -- use collision with this sprite to know when player has eaten or consumed an item
+    -- so that items are not consumed as soon as the edge of the player touches them
+    self.eatingSprite = gfx.sprite.new()
+    self.eatingSprite:setCollideRect(10, 5, self.width - 30, self.height - 10)
+    self.eatingSprite:add()
 
     -- Set up thrust animation and sprite at bottom of truck
     self.thrustImages = gfx.imagetable.new('images/thrust')
@@ -65,10 +72,7 @@ function Player:left()
 end
 
 function Player:jump()
-    if 
-        (self.isJumping and self.fuel > 0) or
-        ((not self.isJumping) and self.fuel > 10)
-    then
+    if self.fuel > 0 then
         self.isJumping = true
     	-- little boost if player is currently on the ground
     	if self:isOnGround() then
@@ -91,6 +95,10 @@ end
 function Player:endJump()
     self.thrustSprite:setVisible(false)
     self.isJumping = false
+end
+
+function Player:tacoCollision(tacoSprite)
+    self.fuel = self.fuel + cons.playerFuelPerTaco
 end
 
 function Player:obstacleCollision(obstacleSprite)
@@ -139,5 +147,6 @@ function Player:update()
     if self.velocity.dy < -6 then self.velocity.dy = -6 end 
 
     self.sprite:moveTo(self.position.dx, self.position.dy)
+    self.eatingSprite:moveTo(self.position.dx, self.position.dy)
     self.thrustSprite:moveTo(self.position.dx + 30, self.position.dy + 40)
 end

@@ -18,3 +18,19 @@ function contains(collection, item)
     return table.indexOfElement(collection, item) ~= nil
 end
 
+function firstWhere(collection, func)
+    for _, item in ipairs(collection) do
+        if (func(item)) then 
+            return item 
+        end
+    end
+    
+    return nil
+end 
+
+function removeItem(collection, item)
+    local i = table.indexOfElement(collection, item)
+    if (i) then
+        table.remove(collection, i)
+    end
+end
