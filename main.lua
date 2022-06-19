@@ -24,6 +24,7 @@ local player = nil
 local scene = nil
 local rightBoundarySprite = nil
 local leftBoundarySprite = nil
+local topBoundarySprite = nil
 
 local crashSound = nil
 
@@ -36,11 +37,17 @@ function myGameSetUp()
     scene = Scene()
 
     -- refactor these out
-    rightBoundarySprite = gfx.sprite.addEmptyCollisionSprite(cons.rightBoundary, -1000, 400-cons.rightBoundary, 1240)
+    rightBoundarySprite = gfx.sprite.addEmptyCollisionSprite(cons.rightBoundary, -1000, 400 - cons.rightBoundary, 1240)
     rightBoundarySprite:add()
 
     leftBoundarySprite = gfx.sprite.addEmptyCollisionSprite(0, -1000, cons.leftBoundary, 1240)
     leftBoundarySprite:add()
+    
+    topBoundarySprite = gfx.sprite.addEmptyCollisionSprite(0, 0, 400, cons.topBoundary)
+    topBoundarySprite:add()
+    
+    bottomBoundarySprite = gfx.sprite.addEmptyCollisionSprite(0, cons.bottomBoundary, 400, 240 - cons.bottomBoundary)
+    bottomBoundarySprite:add()
 
     fuelUI = FuelUI()
     fuelUI:moveTo(8, 8)
@@ -62,6 +69,12 @@ local delta = player.position.dx + player.width - cons.rightBoundary
     player.position.dx = cons.rightBoundary - player.width
 end
 
+function topCollisionUpdate() 
+local delta = player.position.dy + player.height - cons.topBoundary
+    scene:moveUp(delta)
+    player.position.dy = cons.topBoundary - player.height
+end
+
 function collisionUpdate()
     -- test for collision
     local colls = player.sprite:overlappingSprites()
@@ -71,6 +84,7 @@ function collisionUpdate()
         -- play sound here
         if sprite == rightBoundarySprite then rightCollisionUpdate() end
         if sprite == leftBoundarySprite then leftCollisionUpdate() end
+        if sprite == topBoundarySprite then topCollisionUpdate() end
     end
     
     colls = player.eatingSprite:overlappingSprites()

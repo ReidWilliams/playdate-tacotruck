@@ -159,6 +159,10 @@ function Scene:moveRight(delta)
     self:moveBy(delta, 0)
 end
 
+function Scene:moveUp(delta)
+    self:moveBy(0, -delta)
+end
+
 function Scene:isTaco(sprite)
     return contains(self.tacoSprites, sprite)
 end

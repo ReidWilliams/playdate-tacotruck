@@ -7,10 +7,13 @@ function getConstants()
 	c.groundY = 200 -- Y position of ground on which player drives
 	c.leftBoundary = 50 -- X position where driving scrolls scene
 	c.rightBoundary = 250 -- X position where driving scrolls scene
+	c.topBoundary = 50 -- Y position where viewport scrolls up
+	c.bottomBoundary = 220 -- Y position where viewport scrolls down
 	
 	c.playerGroundDelta = 10 -- how far below top of ground to render player
 	c.gravity = vector2D.new(0, 0.25)
-	c.playerStartPosition = vector2D.new(50, c.groundY + c.playerGroundDelta)
+	c.playerStartPosition = vector2D.new(50, 200)
+	-- c.playerStartPosition = vector2D.new(50, c.groundY + c.playerGroundDelta)
 	c.playerFuelConsumeRate = 0.9
 	c.playerFuelPerTaco = 50
 	
