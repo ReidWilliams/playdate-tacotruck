@@ -45,7 +45,6 @@ function myGameSetUp()
 end
 
 function moveViewportOriginBy(delta)
-    print ("moving viewport origin")
     local origin = scene.viewport
     local new = origin + delta
     scene.viewport = new
@@ -58,23 +57,21 @@ function scrollUpdate()
     
     if (pos.dx < cons.leftBoundary) then
         delta.dx = pos.dx - cons.leftBoundary
-        moveViewportOriginBy(delta)
     end
     
     if (pos.dx + player.width > cons.rightBoundary) then
         delta.dx = pos.dx + player.width - cons.rightBoundary
-        moveViewportOriginBy(delta)
     end
     
     if (pos.dy < cons.topBoundary) then
         delta.dy = pos.dy - cons.topBoundary
-        moveViewportOriginBy(delta)
     end
         
     if (scene.viewport.dy < 0 and pos.dy + player.height > cons.bottomBoundary) then
         delta.dy = pos.dy + player.height - cons.bottomBoundary
-        moveViewportOriginBy(delta)
     end
+    
+    moveViewportOriginBy(delta)
 end
     
 function collisionUpdate()
@@ -138,8 +135,8 @@ function playdate.update()
 
     -- order here matters I think
     getPlayerInput()
-    player:update()
     scrollUpdate()
+    player:update()
     scene:update()
     collisionUpdate()
 

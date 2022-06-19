@@ -108,21 +108,21 @@ end
 function Player:obstacleCollision(obstacleSprite)
 	local bottom = self:getBottom()
 
-    if bottom >= obstacleSprite.y + 20 then
+    if bottom >= obstacleSprite.worldPosition.dy + 20 then
         -- player hit obstacle from side
         self:sideCollision()
         
-        if self.position.dx < obstacleSprite.x then
+        if self.position.dx < obstacleSprite.worldPosition.dx then
             -- hit from left
-            self.position.dx = obstacleSprite.x - self.width - 1
+            self.position.dx = obstacleSprite.worldPosition.dx - self.width - 1
         end
-        if self.position.dx > obstacleSprite.x then
+        if self.position.dx > obstacleSprite.worldPosition.dx then
             -- hit from right
-            self.position.x = obstacleSprite.x + obstacleSprite.width
+            self.position.x = obstacleSprite.worldPosition.dx + obstacleSprite.width
         end
     else
         -- player hit obstacle from above
-        self.position.dy = obstacleSprite.y - self.height
+        self.position.dy = obstacleSprite.worldPosition.dy - self.height
         self.velocity.dy = self.velocity.dy * -1.5
     end
 end
