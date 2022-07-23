@@ -13,7 +13,7 @@ import "constants"
 import "utils"
 import "scene"
 import "player"
-import "fuel_UI"
+import "fuel-ui"
 
 local gfx <const> = playdate.graphics
 local vector2D <const> = playdate.geometry.vector2D

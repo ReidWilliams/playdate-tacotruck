@@ -1,5 +1,5 @@
 import "CoreLibs/animation"
-import "animated_sprite"
+import "animated-sprite"
 import "utils"
 
 local gfx <const> = playdate.graphics

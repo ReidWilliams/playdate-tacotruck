@@ -159,7 +159,7 @@ function Scene:update(viewport)
         self.leftGeneratedBoundary -= 400
     end
     
-    -- Cacti and tacos right of player start
+    -- Generate new ground, cacti and tacos right of player start
     if (self.rightGeneratedBoundary - viewport.dx < 800) then
         self:newGroundAt( self.rightGeneratedBoundary )
         self:generateCacti( self.rightGeneratedBoundary, self.rightGeneratedBoundary + 400 )
