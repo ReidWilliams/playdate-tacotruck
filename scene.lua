@@ -1,5 +1,6 @@
 import "utils"
 import "constants"
+import "floating-objects"
 
 local gfx <const> = playdate.graphics
 local vector2D <const> = playdate.geometry.vector2D
@@ -44,6 +45,8 @@ function Scene:init()
     -- Generate for offscreen left 400 pixels, and offscreen right 400 pixels.
     self:generateCacti( -400, 0 )
     self:generateCacti( 400, 800 )
+    
+    self.floatingObjects = FloatingObjects()
 
     return self
 end
@@ -171,6 +174,9 @@ function Scene:update(viewport)
     self:updateSprites(self.groundSprites, viewport)
     self:updateSprites(self.tacoSprites, viewport)
     self:updateSprites(self.cactusSprites, viewport)
+    
+    -- Let floatingObjects know about change in viewport too
+    self.floatingObjects:update(viewport)
 end
        
       
