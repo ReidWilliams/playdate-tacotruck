@@ -12,6 +12,7 @@ import "CoreLibs/timer"
 import "constants"
 import "utils"
 import "scene"
+import "floating-objects"
 import "player"
 import "fuel-ui"
 
@@ -22,6 +23,7 @@ local cons = getConstants()
 
 local player = nil
 local scene = nil
+local floatingObjects = nil
 -- vector representing viewport origin in world coordinates
 local viewport = vector2D.new(0, 0) 
 
@@ -34,6 +36,7 @@ end
 function myGameSetUp()
     player = Player(cons.playerStartPosition)
     scene = Scene()
+    floatingObjects = FloatingObjects()
 
     fuelUI = FuelUI()
     fuelUI:moveTo(8, 8)
@@ -78,6 +81,7 @@ function collisionUpdate()
             player:groundCollision(sprite)
         end
         if scene:isObstacle(sprite) then player:obstacleCollision(sprite) end
+        if floatingObjects:isFloatingObject(sprite) then player:floatingObjectCollision(sprite) end
         -- play sound here
     end
     
@@ -132,6 +136,7 @@ function playdate.update()
     scrollUpdate()
     player:update(viewport)
     scene:update(viewport)
+    floatingObjects:update(viewport)
     collisionUpdate()
 
     gfx.sprite.update()

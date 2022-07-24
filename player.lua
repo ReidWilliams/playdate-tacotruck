@@ -13,6 +13,8 @@ function Player:init(startPosition)
     Player.super.init(self)
 
     self.image = gfx.image.new( "images/player.png" )
+    
+    self.mass = cons.playerMass
 
     self.position = startPosition
     self.velocity = vector2D.new(0, 0)
@@ -126,6 +128,17 @@ end
 function Player:groundCollision(groundSprite)
     self.position.dy = groundSprite.y - self.height + cons.playerGroundDelta + 1
     self.velocity.dy = self.velocity.dy * -0.3
+end
+
+function Player:floatingObjectCollision(floatingObjectSprite)
+    -- FIXME this should be a utility function and better documented
+        
+    local momentum = self.velocity:scaledBy(self.mass * (1 - cons.collisionLoss))
+    local transferredMomentum = momentum:scaledBy(cons.collisionTransfer)
+    -- local playerMomentum = momentum:scaledBy(1 - cons.collisionTransfer)
+    
+    floatingObjectSprite:collision(transferredMomentum)
+    self.velocity = self.velocity:scaledBy(-1) -- reverse direction
 end
 
 function Player:sideCollision() 

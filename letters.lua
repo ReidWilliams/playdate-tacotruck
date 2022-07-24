@@ -10,18 +10,15 @@ local vector2D <const> = playdate.geometry.vector2D
 
 class('FloatingT').extends(FloatingObject)
 
-function FloatingT:init(position, velocity)
-	FloatingObject.super.init(self)
+function FloatingT:init(position, velocity)	
+	local image = gfx.image.new( "images/square.png" )
+	local mass = 1000
+	local sprites = createSpriteWithCollision(image)
 	
+	FloatingT.super.init(self, image, sprites, mass)
+
 	self.position = position
 	self.velocity = velocity
-	
-	-- Subclasses or instances should set these to customize appearance, etc
-	self.image = gfx.image.new( "images/square.png" )
-	self.mass = 100
-	self.sprite = createSpriteWithCollision(self.image)
-	
-	self.sprite:moveTo(position.dx, position.dy)
 	
 	return self
 end
